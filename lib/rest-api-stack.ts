@@ -55,7 +55,7 @@ export class RestAPIStack extends cdk.Stack {
       const delMovieFn = new lambdanode.NodejsFunction(this, "RemoveMovieFn", {
         architecture: lambda.Architecture.ARM_64,
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: `${__dirname}/../lambdas/RemoveMovie.ts`,
+        entry: `${__dirname}/../lambdas/removeMovie.ts`,
         timeout: cdk.Duration.seconds(10),
         memorySize: 128,
         environment: {
@@ -125,12 +125,12 @@ export class RestAPIStack extends cdk.Stack {
     );
     // NEW add
     moviesEndpoint.addMethod(
-      "DELETE",
+      "POST",
       new apig.LambdaIntegration(newMovieFn, { proxy: true })
     );
     // NEW remove
     moviesEndpoint.addMethod(
-      "POST",
+      "DELETE",
       new apig.LambdaIntegration(delMovieFn, { proxy: true })
     );
     // Detail movie endpoint
