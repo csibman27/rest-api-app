@@ -38,7 +38,7 @@ export class RestAPIStack extends cdk.Stack {
           REGION: 'eu-west-1',
         },
       });
-
+      // add
       const newMovieFn = new lambdanode.NodejsFunction(this, "AddMovieFn", {
         architecture: lambda.Architecture.ARM_64,
         runtime: lambda.Runtime.NODEJS_22_X,
@@ -51,6 +51,19 @@ export class RestAPIStack extends cdk.Stack {
         },
       });
       
+      //remove
+      const delMovieFn = new lambdanode.NodejsFunction(this, "RemoveMovieFn", {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_22_X,
+        entry: `${__dirname}/../lambdas/RemoveMovie.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: moviesTable.tableName,
+          REGION: "eu-west-1",
+        },
+      });
+
       const getAllMoviesFn = new lambdanode.NodejsFunction(
         this,
         "GetAllMoviesFn",
@@ -87,6 +100,7 @@ export class RestAPIStack extends cdk.Stack {
         moviesTable.grantReadData(getMovieByIdFn)
         moviesTable.grantReadData(getAllMoviesFn)
         moviesTable.grantReadWriteData(newMovieFn) // add function
+        moviesTable.grantReadWriteData(delMovieFn) // Remove function
 
         
         // REST API 
@@ -109,10 +123,15 @@ export class RestAPIStack extends cdk.Stack {
       "GET",
       new apig.LambdaIntegration(getAllMoviesFn, { proxy: true })
     );
-    // NEW
+    // NEW add
+    moviesEndpoint.addMethod(
+      "DELETE",
+      new apig.LambdaIntegration(newMovieFn, { proxy: true })
+    );
+    // NEW remove
     moviesEndpoint.addMethod(
       "POST",
-      new apig.LambdaIntegration(newMovieFn, { proxy: true })
+      new apig.LambdaIntegration(delMovieFn, { proxy: true })
     );
     // Detail movie endpoint
     const specificMovieEndpoint = moviesEndpoint.addResource("{movieId}");
